@@ -5,8 +5,8 @@ import * as path from 'path';
 async function getBrowser() {
   const isVercel = process.env.VERCEL === '1';
   if (isVercel) {
-    const puppeteerCore = require('puppeteer-core');
-    const chromium = require('@sparticuz/chromium-min');
+    const { default: puppeteerCore } = await import('puppeteer-core');
+    const { default: chromium } = await import('@sparticuz/chromium-min');
     return await puppeteerCore.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -14,7 +14,7 @@ async function getBrowser() {
       headless: chromium.headless,
     });
   } else {
-    const puppeteer = require('puppeteer');
+    const { default: puppeteer } = await import('puppeteer');
     return await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
