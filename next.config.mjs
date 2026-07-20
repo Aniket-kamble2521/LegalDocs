@@ -8,6 +8,7 @@ const nextConfig = {
     // Allows production builds to successfully complete even if there are strict typing errors.
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium-min'],
 };
 
 export default nextConfig;

@@ -1,8 +1,26 @@
-// lib/pdf.ts
-import puppeteer from 'puppeteer';
 import Handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
+
+async function getBrowser() {
+  const isVercel = process.env.VERCEL === '1';
+  if (isVercel) {
+    const puppeteerCore = require('puppeteer-core');
+    const chromium = require('@sparticuz/chromium-min');
+    return await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  } else {
+    const puppeteer = require('puppeteer');
+    return await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+  }
+}
 
 function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
@@ -41,11 +59,8 @@ export async function generatePdf(
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // Launch Puppeteer headless browser
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  // Launch Puppeteer headless browser (environment aware)
+  const browser = await getBrowser();
 
   try {
     const page = await browser.newPage();
