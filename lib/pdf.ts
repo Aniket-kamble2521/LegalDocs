@@ -7,10 +7,16 @@ async function getBrowser() {
   if (isVercel) {
     const { default: puppeteerCore } = await import('puppeteer-core');
     const { default: chromium } = await import('@sparticuz/chromium-min');
+    
+    // Resolve correct architecture for Vercel functions (typically x64 or arm64)
+    const isArm64 = process.arch === 'arm64';
+    const archSuffix = isArm64 ? 'arm64' : 'x64';
+    const chromiumPackUrl = `https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.${archSuffix}.tar`;
+
     return await puppeteerCore.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(chromiumPackUrl),
       headless: chromium.headless,
     });
   } else {
