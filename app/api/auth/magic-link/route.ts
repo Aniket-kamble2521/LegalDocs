@@ -71,6 +71,6 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Error in POST /api/auth/magic-link:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
