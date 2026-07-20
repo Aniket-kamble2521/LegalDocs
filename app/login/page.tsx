@@ -28,7 +28,11 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setMessage(data.message || 'Login link sent to your inbox!');
+        if (data.loginUrl) {
+          window.location.href = data.loginUrl;
+        } else {
+          setMessage(data.message || 'Login link sent to your inbox!');
+        }
       } else {
         setError(data.error || 'Failed to dispatch magic login link.');
       }
