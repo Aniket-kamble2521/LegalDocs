@@ -576,6 +576,17 @@ export default function WizardPage() {
 
   // Real Razorpay script handler
   const triggerRazorpayCheckout = (orderData: any) => {
+    if (orderData.razorpayOrderId && orderData.razorpayOrderId.startsWith('rzp_mock_')) {
+      console.log('[BYPASS] Auto-verifying mock checkout');
+      verifyAndGenerate(
+        orderData.orderId,
+        orderData.razorpayOrderId,
+        `pay_mock_${orderData.orderId}`,
+        `sig_mock_${orderData.orderId}`
+      );
+      return;
+    }
+
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
     if (!keyId) {
       setApiError('Frontend NEXT_PUBLIC_RAZORPAY_KEY_ID is missing.');

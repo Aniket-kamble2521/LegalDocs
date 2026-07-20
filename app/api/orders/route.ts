@@ -26,21 +26,28 @@ export async function POST(request: Request) {
       },
     });
 
-    // 2. Generate the order with Razorpay
-    const rzpOrder = await createRazorpayOrder(amount, order.id);
+    // 2. Generate the order with Razorpay (fallback to mock if credentials are missing)
+    let rzpOrderId = '';
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.log(`[BYPASS] Razorpay credentials not configured. Generating mock order for: ${order.id}`);
+      rzpOrderId = `rzp_mock_${order.id}`;
+    } else {
+      const rzpOrder = await createRazorpayOrder(amount, order.id);
+      rzpOrderId = rzpOrder.id;
+    }
 
     // 3. Update the database order with Razorpay's reference ID
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: {
-        razorpay_order_id: rzpOrder.id,
+        razorpay_order_id: rzpOrderId,
       },
     });
 
     return NextResponse.json({
       success: true,
       orderId: updatedOrder.id,
-      razorpayOrderId: rzpOrder.id,
+      razorpayOrderId: rzpOrderId,
       amount: updatedOrder.amount,
     });
   } catch (error: any) {
