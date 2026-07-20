@@ -131,7 +131,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-slate-800"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#0f172a] text-slate-500 px-2 font-semibold">Or</span>
+                <span className="bg-[#0b111e] text-slate-500 px-2 font-semibold">Or</span>
               </div>
             </div>
 

@@ -11,22 +11,22 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        white: "var(--white-color)",
+        white: "#ffffff",
         slate: {
-          950: "#f8fafc", // Soft page background
-          900: "#ffffff", // Clean card / section background
-          850: "#f1f5f9", // Soft borders / panel background
-          800: "#e2e8f0", // Primary borders / dividers
-          700: "#cbd5e1", // Inactive borders
-          650: "#94a3b8",
-          600: "#64748b", // Muted labels / secondary text
-          550: "#475569", // Descriptive body helper text
-          500: "#334155", // Normal body text
-          400: "#1e293b", // Main headings
-          350: "#0f172a", // Dark titles / bold text
-          300: "#090d16", // Accent text
-          200: "#020617",
-          100: "#000000",
+          950: "#0b111e", // Premium soft dark page background
+          900: "#131926", // Card / section background (glassmorphic contrast)
+          850: "#1b2336", // Soft hover background
+          800: "#222c42", // Primary borders / dividers
+          700: "#2d3a57", // Active borders
+          650: "#475569",
+          600: "#64748b",
+          550: "#94a3b8", // Muted labels / secondary text
+          500: "#cbd5e1", // Normal body text (off-white for high contrast)
+          400: "#e2e8f0", // Descriptive body helper text
+          350: "#f8fafc", // Main headings
+          300: "#ffffff", // Pure white for accent text
+          200: "#ffffff",
+          100: "#ffffff",
         }
       },
     },
