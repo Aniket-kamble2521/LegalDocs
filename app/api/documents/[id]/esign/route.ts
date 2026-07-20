@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { initiateEsign } from '@/lib/esign';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 
@@ -48,7 +49,7 @@ export async function POST(
     }
 
     // 2. Read compiled PDF buffer
-    const filePath = path.join(process.cwd(), 'storage', 'documents', `${id}.pdf`);
+    const filePath = getStoragePath('documents', `${id}.pdf`);
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ success: false, error: 'PDF file is missing on server.' }, { status: 404 });
     }

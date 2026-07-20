@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { checkAnswersConsistency } from '@/lib/llm';
 import { generatePdf } from '@/lib/pdf';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 import { cookies } from 'next/headers';
@@ -173,7 +174,7 @@ export async function POST(request: Request) {
     }
 
     // 6. Set up workspace folder for secure file storage
-    const outputDir = path.join(process.cwd(), 'storage', 'documents');
+    const outputDir = getStoragePath('documents');
     const pdfPath = path.join(outputDir, `${document.id}.pdf`);
 
     // 7. Compile and generate PDF using Puppeteer

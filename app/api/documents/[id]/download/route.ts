@@ -1,6 +1,7 @@
 // app/api/documents/[id]/download/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 
@@ -46,7 +47,7 @@ export async function GET(
     const downloadName = isSigned ? `Signed_Document_${id}.pdf` : `Document_${id}.pdf`;
 
     // 3. Locate and read the PDF
-    const filePath = path.join(process.cwd(), 'storage', 'documents', filename);
+    const filePath = getStoragePath('documents', filename);
     
     if (!fs.existsSync(filePath)) {
       return NextResponse.json(

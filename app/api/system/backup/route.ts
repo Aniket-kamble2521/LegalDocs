@@ -3,12 +3,13 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySession, isAdmin } from '@/lib/session';
 import { prisma } from '@/lib/db';
+import { getStoragePath } from '@/lib/storage';
 import * as fs from 'fs';
 import * as path from 'path';
 
 export const dynamic = 'force-dynamic';
 
-const BACKUP_DIR = path.join(process.cwd(), 'storage', 'backups');
+const BACKUP_DIR = getStoragePath('backups');
 
 export async function GET() {
   try {

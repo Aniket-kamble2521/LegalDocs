@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { validatePartner } from '@/lib/auth';
 import { checkAnswersConsistency } from '@/lib/llm';
 import { generatePdf } from '@/lib/pdf';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
     });
 
     // 5. Secure file storage path
-    const outputDir = path.join(process.cwd(), 'storage', 'documents');
+    const outputDir = getStoragePath('documents');
     const pdfPath = path.join(outputDir, `${document.id}.pdf`);
 
     // 6. Compile and generate PDF using Puppeteer

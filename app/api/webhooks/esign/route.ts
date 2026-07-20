@@ -1,6 +1,7 @@
 // app/api/webhooks/esign/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
@@ -50,8 +51,8 @@ export async function POST(request: Request) {
     }
 
     // 2. Simulate compiling the signed document by duplicating the original PDF
-    const originalPath = path.join(process.cwd(), 'storage', 'documents', `${document.id}.pdf`);
-    const signedPath = path.join(process.cwd(), 'storage', 'documents', `${document.id}_signed.pdf`);
+    const originalPath = getStoragePath('documents', `${document.id}.pdf`);
+    const signedPath = getStoragePath('documents', `${document.id}_signed.pdf`);
 
     if (!fs.existsSync(originalPath)) {
       return NextResponse.json({ success: false, error: 'Original PDF not found on disk.' }, { status: 404 });

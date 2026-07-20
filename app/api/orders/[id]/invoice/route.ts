@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { verifySession, isAdmin } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { generatePdf } from '@/lib/pdf';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 
@@ -51,7 +52,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invoice only available for paid transactions.' }, { status: 400 });
     }
 
-    const invoiceDir = path.join(process.cwd(), 'storage', 'invoices');
+    const invoiceDir = getStoragePath('invoices');
     const invoicePath = path.join(invoiceDir, `${id}.pdf`);
 
     // Ensure directory exists

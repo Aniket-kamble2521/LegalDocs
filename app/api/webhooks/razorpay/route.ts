@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generatePdf } from '@/lib/pdf';
 import crypto from 'crypto';
+import { getStoragePath } from '@/lib/storage';
 import path from 'path';
 import fs from 'fs';
 
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
 
       // Generate invoice PDF
       try {
-        const invoiceDir = path.join(process.cwd(), 'storage', 'invoices');
+        const invoiceDir = getStoragePath('invoices');
         const invoicePath = path.join(invoiceDir, `${order.id}.pdf`);
 
         if (!fs.existsSync(invoiceDir)) {
