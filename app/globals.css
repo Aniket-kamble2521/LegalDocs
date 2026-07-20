@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #0b111e;
-  --foreground: #f1f5f9;
+  --background: #15202b;
+  --foreground: #cbd5e1;
 }
 
 body {
@@ -56,14 +56,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b111e;
+  background: #15202b;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2b3e50;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3d546a;
 }
 
 /* Keyboard Navigation focus outline classes */

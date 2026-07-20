@@ -13,18 +13,18 @@ const config: Config = {
         foreground: "var(--foreground)",
         white: "#ffffff",
         slate: {
-          950: "#0b111e", // Premium soft dark page background
-          900: "#131926", // Card / section background (glassmorphic contrast)
-          850: "#1b2336", // Soft hover background
-          800: "#222c42", // Primary borders / dividers
-          700: "#2d3a57", // Active borders
+          950: "#15202b", // Dim steel-blue page background
+          900: "#1c2732", // Soft card container background
+          850: "#22303c", // Hover background
+          800: "#2b3e50", // Soft slate borders
+          700: "#3d546a", // Active borders
           650: "#475569",
           600: "#64748b",
-          550: "#94a3b8", // Muted labels / secondary text
-          500: "#cbd5e1", // Normal body text (off-white for high contrast)
-          400: "#e2e8f0", // Descriptive body helper text
-          350: "#f8fafc", // Main headings
-          300: "#ffffff", // Pure white for accent text
+          550: "#8899a6", // Cool gray secondary labels
+          500: "#cbd5e1", // Off-white readable body text
+          400: "#e2e8f0", // Supporting text
+          350: "#ffffff", // Heading title color
+          300: "#ffffff",
           200: "#ffffff",
           100: "#ffffff",
         }
