@@ -31,7 +31,10 @@ export async function POST(request: Request) {
     });
 
     // 3. Dispatch Email
-    const loginUrl = `${APP_URL}/api/auth/callback?token=${token}`;
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const dynamicAppUrl = `${protocol}://${host}`;
+    const loginUrl = `${dynamicAppUrl}/api/auth/callback?token=${token}`;
     const subject = 'Sign in to LegalDocs';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
