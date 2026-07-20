@@ -23,7 +23,8 @@ import {
   FileSignature,
   Check,
   Sparkles,
-  Layers
+  Layers,
+  CreditCard
 } from 'lucide-react';
 import { getFieldHelpText } from '@/lib/helpText';
 
@@ -193,6 +194,10 @@ export default function WizardPage() {
   
   // Inline Client Creation States
   const [showCreateClientModal, setShowCreateClientModal] = useState<boolean>(false);
+  // Mock Payment States
+  const [showMockPaymentModal, setShowMockPaymentModal] = useState<boolean>(false);
+  const [mockPaymentOrderData, setMockPaymentOrderData] = useState<any>(null);
+  const [isProcessingMockPayment, setIsProcessingMockPayment] = useState<boolean>(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientLogo, setNewClientLogo] = useState('');
   const [newClientContact, setNewClientContact] = useState('');
@@ -577,13 +582,10 @@ export default function WizardPage() {
   // Real Razorpay script handler
   const triggerRazorpayCheckout = (orderData: any) => {
     if (orderData.razorpayOrderId && orderData.razorpayOrderId.startsWith('rzp_mock_')) {
-      console.log('[BYPASS] Auto-verifying mock checkout');
-      verifyAndGenerate(
-        orderData.orderId,
-        orderData.razorpayOrderId,
-        `pay_mock_${orderData.orderId}`,
-        `sig_mock_${orderData.orderId}`
-      );
+      console.log('[BYPASS] Displaying Sandbox Payment Gateway Modal');
+      setMockPaymentOrderData(orderData);
+      setShowMockPaymentModal(true);
+      setLoading(false); // Reset loading spinner so modal is interactable
       return;
     }
 
@@ -3576,6 +3578,107 @@ export default function WizardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mock Sandbox Payment Modal */}
+      {showMockPaymentModal && mockPaymentOrderData && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl relative text-left">
+            
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-400">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Razorpay Sandbox Gateway</h3>
+                <p className="text-[10px] text-yellow-500 font-semibold uppercase tracking-wider">Demo / Sandbox Mode Active</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+              Real Razorpay keys are not configured. Use this interactive mock checkout to simulate the payment step and generate your document.
+            </p>
+
+            {/* Order Details */}
+            <div className="rounded-xl border border-slate-900 bg-slate-900/50 p-4 space-y-3 mb-6">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Order Reference ID</span>
+                <span className="text-white font-mono text-[10px] bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{mockPaymentOrderData.orderId}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Billing Email</span>
+                <span className="text-slate-300 font-medium">{userEmail}</span>
+              </div>
+              <div className="border-t border-slate-900 my-1 pt-2 flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-semibold">Total Amount</span>
+                <span className="text-lg font-bold text-white">₹{(mockPaymentOrderData.amount / 100).toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3">
+              <button
+                type="button"
+                disabled={isProcessingMockPayment}
+                onClick={async () => {
+                  setIsProcessingMockPayment(true);
+                  // Simulate realistic bank network latency
+                  await new Promise((resolve) => setTimeout(resolve, 1500));
+                  setIsProcessingMockPayment(false);
+                  setShowMockPaymentModal(false);
+                  setLoading(true);
+                  verifyAndGenerate(
+                    mockPaymentOrderData.orderId,
+                    mockPaymentOrderData.razorpayOrderId,
+                    `pay_mock_${mockPaymentOrderData.orderId}`,
+                    `sig_mock_${mockPaymentOrderData.orderId}`
+                  );
+                }}
+                className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 py-3 text-xs font-bold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10"
+              >
+                {isProcessingMockPayment ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-white" />
+                    <span>Processing Sandbox Payment...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Simulate Successful Payment</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                disabled={isProcessingMockPayment}
+                onClick={async () => {
+                  setIsProcessingMockPayment(true);
+                  await new Promise((resolve) => setTimeout(resolve, 1200));
+                  setIsProcessingMockPayment(false);
+                  setShowMockPaymentModal(false);
+                  setApiError('Payment was declined or cancelled by the customer.');
+                }}
+                className="w-full rounded-xl border border-red-900/50 bg-red-950/20 hover:bg-red-950/40 py-2.5 text-xs font-semibold text-red-400 transition-all disabled:opacity-50"
+              >
+                Simulate Declined Payment
+              </button>
+
+              <button
+                type="button"
+                disabled={isProcessingMockPayment}
+                onClick={() => {
+                  setShowMockPaymentModal(false);
+                  setApiError('Checkout session cancelled by the user.');
+                }}
+                className="w-full text-center text-slate-500 hover:text-slate-300 text-[11px] font-medium pt-2 transition-colors block"
+              >
+                Cancel & Go Back
+              </button>
+            </div>
+
           </div>
         </div>
       )}
