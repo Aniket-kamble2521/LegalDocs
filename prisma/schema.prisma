@@ -23,6 +23,7 @@ model Order {
   razorpay_order_id   String?     @unique
   razorpay_payment_id String?
   razorpay_signature  String?
+  invoice_pdf_bytes   Bytes?      // Persistent Cloud Storage for Invoice
   created_at          DateTime    @default(now())
   updated_at          DateTime    @updatedAt
   document            Document?
@@ -52,6 +53,7 @@ model Document {
   type             String         // "NDA_MUTUAL" or "NDA_UNILATERAL"
   answers          Json           // NDA form wizard data
   pdf_url          String?        // Serving URL to the generated PDF
+  pdf_bytes        Bytes?         // Persistent Cloud Storage for Vercel
   download_count   Int            @default(0) // Tracks download attempts (limited to 5)
   status           DocumentStatus @default(PENDING) // Document assembly compilation state
   expires_at       DateTime       // Links active for 48h
@@ -60,6 +62,7 @@ model Document {
   // E-signature fields
   esign_request_id String?
   signed_pdf_url   String?
+  signed_pdf_bytes Bytes?         // Persistent Cloud Storage for Signed PDF
   signature_status SignatureStatus @default(NONE)
   signed_at        DateTime?
   email            String?        // Copied from order/user profile for quick dashboard checks

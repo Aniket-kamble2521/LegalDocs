@@ -49,6 +49,9 @@ export default async function DashboardPage() {
         { order: { email } },
       ],
     },
+    include: {
+      order: true,
+    },
     orderBy: {
       created_at: 'desc',
     },

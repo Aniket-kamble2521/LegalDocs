@@ -115,12 +115,16 @@ export async function POST(request: Request) {
     // 6. Compile and generate PDF using Puppeteer
     await generatePdf(templateContent, answers, pdfPath);
 
-    // 7. Update document entry with the download url
+    // Read generated PDF bytes
+    const pdfBytes = fs.readFileSync(pdfPath);
+
+    // 7. Update document entry with the download url and PDF bytes
     const downloadUrl = `/api/documents/${document.id}/download`;
     await prisma.document.update({
       where: { id: document.id },
       data: {
         pdf_url: downloadUrl,
+        pdf_bytes: pdfBytes,
       },
     });
 

@@ -1226,11 +1226,14 @@ export default function DashboardConsole({
                         </div>
 
                         <div>
-                          <span className="text-[9px] font-mono text-slate-550 block">{doc.id}</span>
+                          <span className="text-[9px] font-mono text-slate-550 block">Doc ID: {doc.id}</span>
+                          {doc.order_id && (
+                            <span className="text-[9px] font-mono text-slate-550 block mt-0.5">Order Ref: {doc.order_id}</span>
+                          )}
                           <span className="text-[10px] text-slate-500 block mt-1">Compiled: {new Date(doc.created_at).toLocaleDateString()}</span>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {isExpired ? (
                             <span className="inline-flex rounded-full bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-400">
                               Expired
@@ -1249,6 +1252,22 @@ export default function DashboardConsole({
                           {doc.signature_status === 'SENT_FOR_SIGNATURE' && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500">
                               Pending E-Sign
+                            </span>
+                          )}
+
+                          {doc.order?.status === 'PAID' ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                              Paid
+                            </span>
+                          ) : doc.order?.status ? (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                              doc.order.status === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-red-950/10 border-red-950/20 text-red-400'
+                            }`}>
+                              {doc.order.status}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-400">
+                              Credit
                             </span>
                           )}
                         </div>
@@ -1288,6 +1307,7 @@ export default function DashboardConsole({
                           />
                         </th>
                         <th className="px-6 py-4">Document Details</th>
+                        <th className="px-6 py-4">Order & Payment</th>
                         <th className="px-6 py-4">Filing Status</th>
                         <th className="px-6 py-4">e-Sign State</th>
                         <th className="px-6 py-4 text-right">Actions</th>
@@ -1328,6 +1348,28 @@ export default function DashboardConsole({
                                 <span>{doc.id}</span>
                                 <span>•</span>
                                 <span>Compiled {new Date(doc.created_at).toLocaleDateString()}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-white font-mono text-[10px] bg-slate-950/50 px-2 py-0.5 rounded border border-slate-800 inline-block">
+                                {doc.order_id ? doc.order_id.substring(0, 8) + '...' : 'Credit / Free'}
+                              </div>
+                              <div className="mt-1">
+                                {doc.order?.status === 'PAID' ? (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                                    Paid
+                                  </span>
+                                ) : doc.order?.status ? (
+                                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                    doc.order.status === 'PENDING' ? 'text-amber-500 bg-amber-500/10 border border-amber-500/20' : 'text-red-400 bg-red-950/10 border border-red-950/20'
+                                  }`}>
+                                    {doc.order.status}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                                    Credit
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

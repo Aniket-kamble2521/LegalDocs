@@ -54,12 +54,27 @@ export async function POST(request: Request) {
     const originalPath = getStoragePath('documents', `${document.id}.pdf`);
     const signedPath = getStoragePath('documents', `${document.id}_signed.pdf`);
 
+    // Fallback: If original PDF is missing from ephemeral disk, recover it from database bytes
+    if (!fs.existsSync(originalPath) && document.pdf_bytes) {
+      try {
+        const dir = path.dirname(originalPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(originalPath, document.pdf_bytes);
+        console.log(`[ESIGN WEBHOOK] Restored original PDF to temp storage from database for document ${document.id}`);
+      } catch (recoveryErr) {
+        console.error('Failed to recover original PDF to temp storage:', recoveryErr);
+      }
+    }
+
     if (!fs.existsSync(originalPath)) {
-      return NextResponse.json({ success: false, error: 'Original PDF not found on disk.' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Original PDF not found on disk or database.' }, { status: 404 });
     }
 
     // Copy original PDF to simulate signed document storage
     fs.copyFileSync(originalPath, signedPath);
+    const signedPdfBytes = fs.readFileSync(signedPath);
 
     // 3. Update database state to SIGNED
     const downloadUrl = `/api/documents/${document.id}/download?signed=true`;
@@ -69,6 +84,7 @@ export async function POST(request: Request) {
         signature_status: 'SIGNED',
         signed_at: new Date(),
         signed_pdf_url: downloadUrl,
+        signed_pdf_bytes: signedPdfBytes,
       },
     });
 

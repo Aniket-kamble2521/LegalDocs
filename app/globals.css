@@ -3,15 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --white-color: #0f172a; /* Map text-white to charcoal on light panels */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Force pure white text on primary buttons, badges, status indicators, and gradient cards */
+.bg-blue-650,
+.bg-blue-600,
+.bg-blue-500,
+.bg-rose-600,
+.bg-red-600,
+.bg-rose-950,
+.bg-emerald-600,
+.bg-green-600,
+button[type="submit"],
+button.bg-blue-600,
+.bg-gradient-to-r,
+.bg-gradient-to-br,
+.text-white-force {
+  --white-color: #ffffff !important;
 }
 
 body {
@@ -57,20 +68,20 @@ body {
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom Scrollbar Styles for Dark Premium Look */
+/* Custom Scrollbar Styles for Light Premium Look */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }
 
 /* Keyboard Navigation focus outline classes */

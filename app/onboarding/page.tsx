@@ -56,6 +56,7 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
   const [selectedCats, setSelectedCats] = useState<string[]>(['NDA', 'SERVICE_AGREEMENT']);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch session on load
   useEffect(() => {
@@ -90,11 +91,37 @@ export default function OnboardingPage() {
 
   const handleNextStep = () => {
     if (step === 3) {
-      // Validate company profile form fields
-      if (!companyName.trim() || !address.trim() || !state || !representative.trim() || !phone.trim()) {
-        alert('Please fill out all required company details.');
+      const newErrors: Record<string, string> = {};
+      
+      // Ensure variables are defined and trimmed
+      if (!companyName || !companyName.trim()) {
+        newErrors.companyName = 'Company / Individual Name is required.';
+      }
+      if (!representative || !representative.trim()) {
+        newErrors.representative = 'Authorized Signatory Name is required.';
+      }
+      if (!phone || !phone.trim()) {
+        newErrors.phone = 'Contact Phone Number is required.';
+      } else {
+        // Robust phone validation (minimum 10 characters)
+        const cleanPhone = phone.replace(/[^0-9+]/g, '');
+        if (cleanPhone.length < 10) {
+          newErrors.phone = 'Please enter a valid phone number (minimum 10 digits).';
+        }
+      }
+      if (!state) {
+        newErrors.state = 'Governing State is required.';
+      }
+      if (!address || !address.trim()) {
+        newErrors.address = 'Registered Corporate / Personal Address is required.';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
         return;
       }
+      
+      setErrors({});
     }
     setStep(prev => Math.min(prev + 1, 5));
   };
@@ -349,10 +376,24 @@ export default function OnboardingPage() {
                   type="text"
                   placeholder="e.g. Acme Tech Private Limited"
                   value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs text-white placeholder-slate-700 focus:border-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    if (errors.companyName) {
+                      setErrors(prev => {
+                        const next = { ...prev };
+                        delete next.companyName;
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none ${
+                    errors.companyName ? 'border-red-500 bg-red-950/10 focus:border-red-500' : 'border-slate-800 bg-slate-950/80 focus:border-blue-500'
+                  }`}
                   required
                 />
+                {errors.companyName && (
+                  <p className="text-[10px] text-red-400 font-semibold">{errors.companyName}</p>
+                )}
               </div>
 
               {/* Representative Name */}
@@ -364,10 +405,24 @@ export default function OnboardingPage() {
                   type="text"
                   placeholder="e.g. John Doe"
                   value={representative}
-                  onChange={(e) => setRepresentative(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs text-white placeholder-slate-700 focus:border-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setRepresentative(e.target.value);
+                    if (errors.representative) {
+                      setErrors(prev => {
+                        const next = { ...prev };
+                        delete next.representative;
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none ${
+                    errors.representative ? 'border-red-500 bg-red-950/10 focus:border-red-500' : 'border-slate-800 bg-slate-950/80 focus:border-blue-500'
+                  }`}
                   required
                 />
+                {errors.representative && (
+                  <p className="text-[10px] text-red-400 font-semibold">{errors.representative}</p>
+                )}
               </div>
 
               {/* Contact Phone */}
@@ -379,10 +434,24 @@ export default function OnboardingPage() {
                   type="tel"
                   placeholder="e.g. +91 98765 43210"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs text-white placeholder-slate-700 focus:border-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (errors.phone) {
+                      setErrors(prev => {
+                        const next = { ...prev };
+                        delete next.phone;
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none ${
+                    errors.phone ? 'border-red-500 bg-red-950/10 focus:border-red-500' : 'border-slate-800 bg-slate-950/80 focus:border-blue-500'
+                  }`}
                   required
                 />
+                {errors.phone && (
+                  <p className="text-[10px] text-red-400 font-semibold">{errors.phone}</p>
+                )}
               </div>
 
               {/* State */}
@@ -452,10 +521,24 @@ export default function OnboardingPage() {
                   rows={2}
                   placeholder="Full office or residential address..."
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs text-white placeholder-slate-700 focus:border-blue-500 focus:outline-none resize-none"
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (errors.address) {
+                      setErrors(prev => {
+                        const next = { ...prev };
+                        delete next.address;
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none resize-none ${
+                    errors.address ? 'border-red-500 bg-red-950/10 focus:border-red-500' : 'border-slate-800 bg-slate-950/80 focus:border-blue-500'
+                  }`}
                   required
                 />
+                {errors.address && (
+                  <p className="text-[10px] text-red-400 font-semibold">{errors.address}</p>
+                )}
               </div>
 
             </div>

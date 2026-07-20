@@ -118,7 +118,14 @@ export async function POST(request: Request) {
           };
 
           await generatePdf(templateContent, invoiceData, invoicePath);
-          console.log(`[RAZORPAY WEBHOOK] Invoice generated for order ${order.id}`);
+          const invoiceBytes = fs.readFileSync(invoicePath);
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              invoice_pdf_bytes: invoiceBytes,
+            },
+          });
+          console.log(`[RAZORPAY WEBHOOK] Invoice generated and stored in DB for order ${order.id}`);
         }
       } catch (invoiceErr) {
         console.error('[RAZORPAY WEBHOOK] Failed to generate invoice PDF:', invoiceErr);

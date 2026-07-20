@@ -54,14 +54,11 @@ export async function GET(
 
     const invoiceDir = getStoragePath('invoices');
     const invoicePath = path.join(invoiceDir, `${id}.pdf`);
+    let fileBuffer: Buffer;
 
-    // Ensure directory exists
-    if (!fs.existsSync(invoiceDir)) {
-      fs.mkdirSync(invoiceDir, { recursive: true });
-    }
-
-    // 4. Compile on-the-fly if not already generated on disk
-    if (!fs.existsSync(invoicePath)) {
+    if (order.invoice_pdf_bytes) {
+      fileBuffer = Buffer.from(order.invoice_pdf_bytes);
+    } else {
       const templatePath = path.join(process.cwd(), 'templates', 'invoice.html');
       if (!fs.existsSync(templatePath)) {
         return NextResponse.json({ success: false, error: 'Invoice template not found on system.' }, { status: 500 });
@@ -81,10 +78,26 @@ export async function GET(
         amount: (order.amount / 100).toFixed(2),
       };
 
-      await generatePdf(templateContent, invoiceData, invoicePath);
-    }
+      // Ensure directory exists
+      if (!fs.existsSync(invoiceDir)) {
+        fs.mkdirSync(invoiceDir, { recursive: true });
+      }
 
-    const fileBuffer = fs.readFileSync(invoicePath);
+      await generatePdf(templateContent, invoiceData, invoicePath);
+      fileBuffer = fs.readFileSync(invoicePath);
+
+      // Save bytes to database for persistent Vercel storage
+      try {
+        await prisma.order.update({
+          where: { id },
+          data: {
+            invoice_pdf_bytes: fileBuffer,
+          },
+        });
+      } catch (saveErr) {
+        console.error('Failed to save invoice PDF bytes to database:', saveErr);
+      }
+    }
 
     return new Response(fileBuffer, {
       status: 200,

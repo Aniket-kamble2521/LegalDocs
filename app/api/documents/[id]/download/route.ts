@@ -48,15 +48,32 @@ export async function GET(
 
     // 3. Locate and read the PDF
     const filePath = getStoragePath('documents', filename);
+    let fileBuffer: Buffer;
     
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json(
-        { success: false, error: isSigned ? 'Signed PDF has not been generated or compiled yet.' : 'PDF file not found on disk. Please contact support.' },
-        { status: 404 }
-      );
-    }
+    if (fs.existsSync(filePath)) {
+      fileBuffer = fs.readFileSync(filePath);
+    } else {
+      // Fallback: Recover file bytes from database persistent storage
+      const dbBytes = isSigned ? document.signed_pdf_bytes : document.pdf_bytes;
+      if (!dbBytes) {
+        return NextResponse.json(
+          { success: false, error: isSigned ? 'Signed PDF has not been generated or compiled yet.' : 'PDF file not found in database or disk storage.' },
+          { status: 404 }
+        );
+      }
+      fileBuffer = Buffer.from(dbBytes);
 
-    const fileBuffer = fs.readFileSync(filePath);
+      // Cache it back to temporary filesystem for optimization
+      try {
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(filePath, fileBuffer);
+      } catch (cacheErr) {
+        console.error('Failed to write cached file in temp storage:', cacheErr);
+      }
+    }
     
     // Increment download count and update timestamp
     try {

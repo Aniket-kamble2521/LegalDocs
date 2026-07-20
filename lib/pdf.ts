@@ -6,7 +6,7 @@ async function getBrowser() {
   const isVercel = process.env.VERCEL === '1';
   if (isVercel) {
     const { default: puppeteerCore } = await import('puppeteer-core');
-    const { default: chromium } = await import('@sparticuz/chromium-min');
+    const { default: chromium } = (await import('@sparticuz/chromium-min')) as any;
     
     // Resolve correct architecture for Vercel functions (typically x64 or arm64)
     const isArm64 = process.arch === 'arm64';
