@@ -1,0 +1,132 @@
+<!-- TEMPLATE PENDING LAWYER REVIEW — do not use in production until reviewed -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rental Agreement</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #333333;
+      line-height: 1.6;
+      margin: 40px;
+      font-size: 14px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 10px;
+    }
+    .preamble {
+      margin-bottom: 20px;
+    }
+    .party-block {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    .party-title {
+      font-weight: bold;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-size: 15px;
+      border-bottom: 1px solid #cccccc;
+      padding-bottom: 3px;
+    }
+    .signatures {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .signature-block {
+      width: 45%;
+      border-top: 1px solid #000000;
+      padding-top: 10px;
+      margin-top: 60px;
+    }
+    .footer-disclaimer {
+      margin-top: 50px;
+      font-size: 10px;
+      color: #777777;
+      text-align: center;
+      border-top: 1px dashed #cccccc;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Residential Rental Agreement</h1>
+
+  <div class="preamble">
+    This Residential Rental Agreement (the "Agreement") is entered into on this <strong>{{effective_date}}</strong> (the "Effective Date"), by and between:
+  </div>
+
+  <div class="party-block">
+    <span class="party-title">Landlord:</span> <strong>{{landlord_name}}</strong>, residing at {{landlord_address}} (hereinafter referred to as the "Landlord").
+  </div>
+
+  <div class="party-block">
+    <span class="party-title">Tenant:</span> <strong>{{tenant_name}}</strong>, residing at {{tenant_address}} (hereinafter referred to as the "Tenant").
+  </div>
+
+  <div class="section-title">1. Demised Premises</div>
+  <div>
+    The Landlord hereby demises to the Tenant and the Tenant hereby takes on rent the residential property located at: <strong>{{property_address}}</strong> (the "Premises").
+  </div>
+
+  <div class="section-title">2. Rent, Security Deposit, and Maintenance</div>
+  <div>
+    The Tenant agrees to pay the Landlord rent of <strong>₹{{rent_amount}}</strong> per month on or before the 5th day of each calendar month.
+    Additionally, the Tenant has deposited a sum of <strong>₹{{security_deposit}}</strong> as interest-free security deposit, refundable upon vacancy of the Premises.
+    The monthly maintenance charge is <strong>₹{{maintenance_amount}}</strong>, paid as agreed.
+  </div>
+
+  <div class="section-title">3. Duration & Lock-in Period</div>
+  <div>
+    This Agreement is for a fixed term of <strong>{{tenancy_period_months}}</strong> months starting from the Effective Date.
+    The lock-in period for this agreement shall be <strong>{{lock_in_period_months}}</strong> months, during which neither party can terminate the tenancy.
+  </div>
+
+  <div class="section-title">4. Utilities & Other Payments</div>
+  <div>
+    The Tenant is responsible for paying all monthly utility fees including: <strong>{{utilities_included}}</strong>.
+  </div>
+
+  <div class="section-title">5. Notice Period for Termination</div>
+  <div>
+    After the lock-in period, either party may terminate this agreement by giving <strong>{{notice_period_days}}</strong> days written notice.
+  </div>
+
+  <div class="section-title">6. State Specific Rules & Stamp Duty</div>
+  <div>
+    This agreement is executed in the state of <strong>{{governing_jurisdiction}}</strong>, India. The parties shall abide by the local Rent Control Act and stamp duty rules of the state.
+  </div>
+
+  <div class="signatures">
+    <div class="signature-block">
+      <strong>For Landlord: {{landlord_name}}</strong><br><br>
+      Name:<br>
+      Title: Landlord<br>
+      Date:
+    </div>
+    <div class="signature-block">
+      <strong>For Tenant: {{tenant_name}}</strong><br><br>
+      Name:<br>
+      Title: Tenant<br>
+      Date:
+    </div>
+  </div>
+
+  <div class="footer-disclaimer">
+    DISCLAIMER: This document was assembled using LegalDocs. It is for informational purposes only, does not constitute legal advice, and does not create an attorney-client relationship.
+  </div>
+
+</body>
+</html>

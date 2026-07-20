@@ -1,0 +1,365 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum OrderType {
+  SINGLE
+  BUNDLE
+}
+
+model Order {
+  id                  String      @id @default(uuid())
+  email               String?     // Captured email for confirmation and link retrieval
+  status              OrderStatus @default(PENDING)
+  amount              Int         // In paise (e.g. 19900 for ₹199)
+  type                OrderType   @default(SINGLE)
+  razorpay_order_id   String?     @unique
+  razorpay_payment_id String?
+  razorpay_signature  String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  document            Document?
+
+  @@index([email])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum SignatureStatus {
+  NONE
+  SENT_FOR_SIGNATURE
+  SIGNED
+  DECLINED
+  EXPIRED
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  order_id         String         @unique
+  order            Order          @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  type             String         // "NDA_MUTUAL" or "NDA_UNILATERAL"
+  answers          Json           // NDA form wizard data
+  pdf_url          String?        // Serving URL to the generated PDF
+  download_count   Int            @default(0) // Tracks download attempts (limited to 5)
+  status           DocumentStatus @default(PENDING) // Document assembly compilation state
+  expires_at       DateTime       // Links active for 48h
+  created_at       DateTime       @default(now())
+  
+  // E-signature fields
+  esign_request_id String?
+  signed_pdf_url   String?
+  signature_status SignatureStatus @default(NONE)
+  signed_at        DateTime?
+  email            String?        // Copied from order/user profile for quick dashboard checks
+
+  // Extended fields for Analytics & Document Workspace
+  view_count       Int            @default(0)
+  last_downloaded  DateTime?
+  language         String         @default("English (IN)")
+  template_version String         @default("v2.0")
+
+  client_id        String?
+  client           Client?        @relation(fields: [client_id], references: [id], onDelete: SetNull)
+
+  @@index([email])
+}
+
+enum DocumentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Template {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // "NDA"
+  version   String
+  variant   String   // "MUTUAL" or "UNILATERAL"
+  content   String   @db.Text
+  is_active Boolean  @default(true)
+}
+
+model WizardEvent {
+  id         String   @id @default(uuid())
+  sessionId  String
+  step       Int
+  action     String   @default("ENTERED")
+  created_at DateTime @default(now())
+
+  @@map("wizard_events")
+}
+
+model CreditBalance {
+  email      String   @id
+  credits    Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model MagicToken {
+  id         String   @id @default(uuid())
+  email      String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+}
+
+model Partner {
+  id         String           @id @default(uuid())
+  name       String
+  api_key    String           @unique
+  rate_limit Int              @default(60) // requests per minute
+  is_active  Boolean          @default(true)
+  created_at DateTime         @default(now())
+  requests   PartnerRequest[]
+}
+
+model PartnerRequest {
+  id         String   @id @default(uuid())
+  partner_id String
+  partner    Partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  path       String
+  created_at DateTime @default(now())
+
+  @@index([partner_id, created_at])
+}
+
+model AdminActivityLog {
+  id         String   @id @default(uuid())
+  email      String
+  action     String
+  details    String?
+  created_at DateTime @default(now())
+
+  @@index([email])
+}
+
+model WebhookLog {
+  id         String   @id @default(uuid())
+  payload    Json
+  event_type String?
+  created_at DateTime @default(now())
+}
+
+model PaymentAudit {
+  id         String   @id @default(uuid())
+  order_id   String
+  email      String
+  amount     Int
+  status     String
+  action     String
+  created_at DateTime @default(now())
+
+  @@index([order_id])
+  @@index([email])
+}
+
+model SupportTicket {
+  id         String   @id @default(uuid())
+  email      String
+  subject    String
+  message    String
+  status     String   @default("OPEN") // "OPEN", "RESOLVED", "CLOSED"
+  priority   String   @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+  replies    Json?    // Array of replies: [{ sender: string, message: string, timestamp: string }]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([email])
+}
+
+model TemplateMetadata {
+  template_id      String   @id
+  description      String?
+  price            Int      @default(19900) // In paise (e.g. 19900 for ₹199)
+  lawyer_reviewed  Boolean  @default(true)
+  ai_assisted      Boolean  @default(true)
+  faqs             Json?    // Array of { question, answer }
+  scheduled_update DateTime?
+}
+
+model ContentConfig {
+  key        String   @id
+  value      Json
+}
+
+model CompanyProfile {
+  email              String   @id
+  company_name       String
+  gst                String?
+  pan                String?
+  address            String
+  state              String
+  country            String   @default("India")
+  representative     String
+  phone              String
+  email_contact      String
+  website            String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+model UserPreferences {
+  email      String  @id
+  onboarded  Boolean @default(false)
+  user_type  String? // "FREELANCER", "STARTUP", "BUSINESS", "INDIVIDUAL"
+  categories String[]
+}
+
+model Feedback {
+  id         String   @id @default(uuid())
+  email      String
+  type       String   // "BUG", "FEATURE_REQUEST", "GENERAL", "NPS"
+  rating     Int?     // 1 to 5 star rating
+  nps_score  Int?     // 0 to 10 NPS score
+  message    String
+  status     String   @default("NEW") // "NEW", "REVIEWED", "ARCHIVED"
+  created_at DateTime @default(now())
+
+  @@index([email])
+}
+
+model HelpArticle {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  category   String   // "GUIDE", "FAQ", "TUTORIAL"
+  content    String   @db.Text
+  created_at DateTime @default(now())
+}
+
+model BlogPost {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  summary    String
+  content    String   @db.Text
+  category   String   // "NDA", "CONTRACTS", "FREELANCING", "STARTUP_LAW", "RENTAL_AGREEMENTS", "LEGAL_GUIDES"
+  published  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  email      String
+  type       String   // "DOCUMENT_GENERATED", "PAYMENT_SUCCESS", "DRAFT_REMINDER", "DOCUMENT_EXPIRING", "TEMPLATE_UPDATED", "SYSTEM_MAINTENANCE"
+  message    String
+  read       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([email, read])
+}
+
+model SystemLog {
+  id         String   @id @default(uuid())
+  category   String   // "API", "PAYMENT", "AI", "PDF", "EMAIL"
+  level      String   // "INFO", "WARN", "ERROR"
+  message    String
+  metadata   Json?
+  created_at DateTime @default(now())
+}
+
+model Subscription {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  plan       String   // "FREE", "PRO", "ENTERPRISE"
+  status     String   // "ACTIVE", "EXPIRED", "CANCELED"
+  expires_at DateTime
+  org_id     String?
+  org        Organization? @relation(fields: [org_id], references: [id])
+}
+
+model Organization {
+  id                 String           @id @default(uuid())
+  name               String
+  white_label_domain String?
+  api_key            String?          @unique
+  created_at         DateTime         @default(now())
+  memberships        OrgMembership[]
+  subscriptions      Subscription[]
+}
+
+model OrgMembership {
+  id         String   @id @default(uuid())
+  email      String
+  role       String   // "OWNER", "ADMIN", "MEMBER"
+  org_id     String
+  org        Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@unique([email, org_id])
+}
+
+model SystemSetting {
+  key   String @id
+  value Json
+}
+
+model Client {
+  id             String           @id @default(uuid())
+  user_email     String           // owner of this workspace
+  company_name   String
+  logo_url       String?          @db.Text
+  contact_person String
+  email          String
+  phone          String
+  address        String           @db.Text
+  gst            String?
+  notes          String?          @db.Text
+  is_favorite    Boolean          @default(false)
+  is_archived    Boolean          @default(false)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  documents      Document[]
+  activities     ClientActivity[]
+
+  @@index([user_email])
+}
+
+model ClientActivity {
+  id         String   @id @default(uuid())
+  client_id  String
+  client     Client   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  action     String   // e.g. "CREATED", "UPDATED", "DOC_ATTACHED", "DOC_DETACHED", "ARCHIVED"
+  details    String
+  created_at DateTime @default(now())
+
+  @@index([client_id])
+}
+
+model DocumentWorkflow {
+  id               String   @id @default(uuid())
+  doc_type         String   @unique // e.g. "MUTUAL_NDA", "UNILATERAL_NDA", "FREELANCE_AGREEMENT", "RENTAL_AGREEMENT"
+  name             String
+  description      String?
+  is_active        Boolean  @default(true)
+  question_set     Json     // Dynamic question steps & fields
+  validation_rules Json     // Field level constraints, ranges, conflict validations
+  ai_suggestions   Json     // Dynamic AI audit mapping rules
+  industry_rules   Json?    // Optional industry-specific rules
+  estimated_pages  Int      @default(8)
+  reading_time     Int      @default(12)
+  recommended_docs Json     // String array of recommended documents
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+
+
