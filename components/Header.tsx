@@ -1,9 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +39,7 @@ export function Header() {
           </Link>
         </div>
         
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/" className="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
             Home
@@ -47,8 +50,8 @@ export function Header() {
           <Link href="/dashboard" className="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
             Dashboard
           </Link>
-          <Link href="/admin" className="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
-            Admin
+          <Link href="/help" className="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
+            Help
           </Link>
         </nav>
 
@@ -59,8 +62,55 @@ export function Header() {
           >
             Create Document
           </Link>
+
+          {/* Hamburger Menu Toggle Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            type="button"
+            className="inline-flex md:hidden items-center justify-center text-slate-400 hover:text-white focus:outline-none p-2 rounded-lg border border-slate-900 bg-slate-900/30 backdrop-blur-md transition-all active:scale-95"
+            aria-expanded={mobileMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Panel */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-900 bg-slate-950/95 backdrop-blur-lg transition-all duration-300">
+          <div className="space-y-1 px-4 pt-2 pb-4 flex flex-col">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all"
+            >
+              Home
+            </Link>
+            <Link
+              href="/wizard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all"
+            >
+              Wizard
+            </Link>
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/help"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all"
+            >
+              Help
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

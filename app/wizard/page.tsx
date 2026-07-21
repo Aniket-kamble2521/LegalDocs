@@ -169,9 +169,13 @@ export default function WizardPage() {
     }
   }, [answers.docType, workflows]);
 
+  const totalSteps = selectedWorkflow && Array.isArray(selectedWorkflow.question_set) 
+    ? selectedWorkflow.question_set.length + 2 
+    : 6;
+
   // Run dynamic pre-generation audits
   useEffect(() => {
-    if (selectedWorkflow && currentStep === 6 && !documentUrl) {
+    if (selectedWorkflow && currentStep === totalSteps && !documentUrl) {
       setAuditLoading(true);
       fetch('/api/workflows/audit', {
         method: 'POST',
@@ -190,7 +194,7 @@ export default function WizardPage() {
         .catch(err => console.error('Error auditing answers:', err))
         .finally(() => setAuditLoading(false));
     }
-  }, [answers, currentStep, selectedWorkflow, documentUrl]);
+  }, [answers, currentStep, selectedWorkflow, documentUrl, totalSteps]);
   
   // Inline Client Creation States
   const [showCreateClientModal, setShowCreateClientModal] = useState<boolean>(false);
@@ -384,7 +388,7 @@ export default function WizardPage() {
   const validateStep = (step: number): boolean => {
     if (selectedWorkflow) {
       if (step === 1) return !!answers.docType;
-      const stepConfig = selectedWorkflow.question_set.find((s: any) => s.step === step);
+      const stepConfig = selectedWorkflow.question_set.find((s: any) => s.step === step - 1);
       if (!stepConfig) return true;
 
       for (const field of stepConfig.fields) {
@@ -467,7 +471,7 @@ export default function WizardPage() {
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 6));
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
     } else {
       alert('Please fill in all required fields correctly before proceeding.');
     }
@@ -868,7 +872,7 @@ export default function WizardPage() {
             Document Generation Wizard
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            Complete the 6-step questionnaire to assemble your custom legal agreement.
+            Complete the {totalSteps}-step questionnaire to assemble your custom legal agreement.
           </p>
         </div>
         <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-400 animate-pulse">
@@ -880,10 +884,10 @@ export default function WizardPage() {
       {/* Progress Bar */}
       <div className="mb-10 rounded-2xl border border-slate-900 bg-slate-900/20 p-5 space-y-4">
         <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-          <span className="bg-slate-900 px-2.5 py-1 rounded text-white font-bold">STEP {currentStep} OF 6</span>
+          <span className="bg-slate-900 px-2.5 py-1 rounded text-white font-bold">STEP {currentStep} OF {totalSteps}</span>
           <div className="text-right">
             <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Estimated Time</span>
-            <span className="text-slate-300 font-bold">~{Math.max(1, 6 - currentStep)} min remaining</span>
+            <span className="text-slate-300 font-bold">~{Math.max(1, totalSteps - currentStep)} min remaining</span>
           </div>
         </div>
         
@@ -891,32 +895,41 @@ export default function WizardPage() {
           <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase tracking-wider">
             <span>
               {currentStep === 1 && 'Document Type Selection'}
-              {answers.docType === 'nda' && (
+              {selectedWorkflow ? (
                 <>
-                  {currentStep === 2 && 'NDA Type Selection'}
-                  {currentStep === 3 && 'Party Details'}
-                  {currentStep === 4 && 'Purpose & Scope'}
-                  {currentStep === 5 && 'Term & Jurisdiction'}
-                  {currentStep === 6 && 'Review & Generate'}
+                  {currentStep > 1 && currentStep < totalSteps && (selectedWorkflow.question_set.find((s: any) => s.step === currentStep - 1)?.title || 'Configuration')}
+                  {currentStep === totalSteps && 'Review & Generate'}
+                </>
+              ) : (
+                <>
+                  {answers.docType === 'nda' && (
+                    <>
+                      {currentStep === 2 && 'NDA Type Selection'}
+                      {currentStep === 3 && 'Party Details'}
+                      {currentStep === 4 && 'Purpose & Scope'}
+                      {currentStep === 5 && 'Term & Jurisdiction'}
+                      {currentStep === 6 && 'Review & Generate'}
+                    </>
+                  )}
+                  {answers.docType === 'service_agreement' && (
+                    <>
+                      {currentStep === 2 && 'Party Details'}
+                      {currentStep === 3 && 'Scope & Deliverables'}
+                      {currentStep === 4 && 'Payment & Milestones'}
+                      {currentStep === 5 && 'Term & Jurisdiction'}
+                      {currentStep === 6 && 'Review & Generate'}
+                    </>
+                  )}
+                  {!answers.docType && currentStep > 1 && 'Configuration'}
                 </>
               )}
-              {answers.docType === 'service_agreement' && (
-                <>
-                  {currentStep === 2 && 'Party Details'}
-                  {currentStep === 3 && 'Scope & Deliverables'}
-                  {currentStep === 4 && 'Payment & Milestones'}
-                  {currentStep === 5 && 'Term & Jurisdiction'}
-                  {currentStep === 6 && 'Review & Generate'}
-                </>
-              )}
-              {!answers.docType && currentStep > 1 && 'Configuration'}
             </span>
-            <span className="text-blue-400">{Math.round((currentStep / 6) * 100)}% Complete</span>
+            <span className="text-blue-400">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
           </div>
           <div className="w-full bg-slate-955 h-2 rounded-full overflow-hidden border border-slate-900">
             <div 
               className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
-              style={{ width: `${(currentStep / 6) * 100}%` }}
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -1399,11 +1412,11 @@ export default function WizardPage() {
                   </div>
                 )}
 
-                {/* DYNAMIC WORKFLOW QUESTIONS (STEPS 2-5) */}
-                {selectedWorkflow && currentStep >= 2 && currentStep <= 5 && (
+                {/* DYNAMIC WORKFLOW QUESTIONS (STEPS 2 to totalSteps - 1) */}
+                {selectedWorkflow && currentStep >= 2 && currentStep < totalSteps && (
                   <div className="space-y-6 animate-fade-in">
                     {(() => {
-                      const stepConfig = selectedWorkflow.question_set.find((s: any) => s.step === currentStep);
+                      const stepConfig = selectedWorkflow.question_set.find((s: any) => s.step === currentStep - 1);
                       if (!stepConfig) {
                         return <div className="text-slate-400 text-xs py-10 text-center">No fields configured for this step. Click Continue.</div>;
                       }
@@ -1411,7 +1424,7 @@ export default function WizardPage() {
                         <div className="space-y-6">
                           <div className="border-b border-slate-900 pb-3 flex justify-between items-center">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
-                              Section {currentStep} — {stepConfig.title}
+                              Section {stepConfig.step} — {stepConfig.title}
                             </span>
                           </div>
 
@@ -1861,7 +1874,7 @@ export default function WizardPage() {
                     )}
 
                     {/* STEP 6 */}
-                    {!selectedWorkflow && currentStep === 6 && (
+                    {!selectedWorkflow && currentStep === totalSteps && (
                       <div className="space-y-6 animate-fade-in">
                         {/* Section Header Banner */}
                         <div className="border-b border-slate-900 pb-3 flex justify-between items-center">
@@ -2496,7 +2509,7 @@ export default function WizardPage() {
                         </div>
                       </div>
                     )}
-                       {!selectedWorkflow && currentStep === 6 && (
+                       {!selectedWorkflow && currentStep === totalSteps && (
                       <div className="space-y-6 animate-fade-in">
                         {/* Section Header Banner */}
                         <div className="border-b border-slate-900 pb-3 flex justify-between items-center">
@@ -2697,8 +2710,8 @@ export default function WizardPage() {
                   </>
                 )}
 
-                {/* DYNAMIC WORKFLOW STEP 6: PARAMETERS REVIEW & INLINE EDITING */}
-                {selectedWorkflow && currentStep === 6 && (
+                {/* DYNAMIC WORKFLOW PARAMETERS REVIEW & INLINE EDITING */}
+                {selectedWorkflow && currentStep === totalSteps && (
                   <div className="space-y-6 animate-fade-in text-left">
                     <div className="space-y-1">
                       <h2 className="text-xl font-bold text-white tracking-tight">Review & Edit Parameters</h2>
@@ -2725,7 +2738,7 @@ export default function WizardPage() {
                               <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">{stepConfig.title}</span>
                               <button
                                 type="button"
-                                onClick={() => setCurrentStep(stepConfig.step)}
+                                onClick={() => setCurrentStep(stepConfig.step + 1)}
                                 className="text-[10px] font-bold text-slate-450 hover:text-white uppercase tracking-wider bg-slate-900/50 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded transition-colors cursor-pointer"
                               >
                                 Edit Step
@@ -2815,7 +2828,7 @@ export default function WizardPage() {
                   </button>
                 )}
 
-                {currentStep < 6 ? (
+                {currentStep < totalSteps ? (
                   <button
                     type="button"
                     onClick={nextStep}
@@ -2993,7 +3006,7 @@ export default function WizardPage() {
                   compareBody = '• Fixed Price: Payment is tied to specific deliverables or milestones. Best for projects with clear, defined scopes and deadlines. Protects clients from budget overruns.\n\n• Retainer / Time-Based: Payment is recurrent (monthly/hourly) for ongoing work. Best for agile, shifting scopes or continuous support arrangements.';
                 }
 
-                if (currentStep === 6) {
+                if (currentStep === totalSteps) {
                   if (selectedWorkflow) {
                     const score = auditResult?.readinessScore ?? 100;
                     const breakdown = auditResult?.breakdown ?? { completeness: 100, legalCoverage: 100, businessProtection: 100 };

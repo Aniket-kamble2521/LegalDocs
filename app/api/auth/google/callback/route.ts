@@ -72,11 +72,11 @@ export async function GET(request: Request) {
       });
 
       if (!existingBalance) {
-        // Create credit balance with 1 free trial credit on first login
+        // Create credit balance with 0 credits on first login
         await prisma.creditBalance.create({
           data: {
             email: normalizedEmail,
-            credits: 1,
+            credits: 0,
           },
         });
         console.log(`[GOOGLE AUTH] Created trial balance for new user: ${normalizedEmail}`);

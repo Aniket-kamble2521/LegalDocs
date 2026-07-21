@@ -1,7 +1,7 @@
 // app/api/orders/verify/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyRazorpaySignature } from '@/lib/payments';
+import { verifyRazorpaySignature, razorpay } from '@/lib/payments';
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +32,6 @@ export async function POST(request: Request) {
 
       // Cross-verify payment status directly with Razorpay server-side API (never trust frontend success alone)
       try {
-        const { razorpay } = require('@/lib/payments');
         if (razorpay) {
           const payment = await razorpay.payments.fetch(razorpayPaymentId);
           if (
@@ -57,7 +56,12 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!isSignatureValid || !paymentVerifiedServerSide) {
+    if (paymentVerifiedServerSide && !isSignatureValid) {
+      console.warn(`[PAYMENT VERIFICATION WARNING] Razorpay signature mismatch, but payment was verified server-side via Razorpay API: ${razorpayPaymentId}`);
+    }
+
+    if (!isSignatureValid && !paymentVerifiedServerSide) {
+      console.error(`[PAYMENT VERIFICATION FAILED] Signature valid: ${isSignatureValid}, Server-side verified: ${paymentVerifiedServerSide}`);
       // Update order status to FAILED
       await prisma.order.update({
         where: { id: orderId },

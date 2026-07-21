@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getStoragePath } from '@/lib/storage';
+import { verifySession, isAdmin } from '@/lib/session';
+import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs';
 
@@ -19,15 +21,44 @@ export async function GET(
       );
     }
 
-    // 1. Fetch document metadata
+    // Authenticate request via session cookie
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('legaldocs_session')?.value;
+
+    if (!sessionCookie) {
+      return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+    }
+
+    const sessionEmail = verifySession(sessionCookie);
+    if (!sessionEmail) {
+      return NextResponse.json({ success: false, error: 'Invalid session.' }, { status: 401 });
+    }
+
+    // 1. Fetch document metadata alongside order
     const document = await prisma.document.findUnique({
       where: { id },
+      include: { order: true },
     });
 
     if (!document) {
       return NextResponse.json(
         { success: false, error: 'Document not found.' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership
+    const sessionEmailNormalized = sessionEmail.trim().toLowerCase();
+    const docEmailNormalized = document.email?.trim().toLowerCase();
+    const orderEmailNormalized = document.order?.email?.trim().toLowerCase();
+
+    const isOwner = (docEmailNormalized === sessionEmailNormalized) || (orderEmailNormalized === sessionEmailNormalized);
+    const isUserAdmin = isAdmin(sessionEmail);
+
+    if (!isOwner && !isUserAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied. You do not own this document.' },
+        { status: 403 }
       );
     }
 

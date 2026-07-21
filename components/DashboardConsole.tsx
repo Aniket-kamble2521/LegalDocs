@@ -36,7 +36,9 @@ import {
   ArrowUpDown,
   Send,
   Loader2,
-  ShieldAlert
+  ShieldAlert,
+  X,
+  Calculator
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -410,6 +412,11 @@ export default function DashboardConsole({
   const [globalQuery, setGlobalQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<any>(null);
   const [searching, setSearching] = useState<boolean>(false);
+
+  // Savings ROI Calculator states
+  const [showSavingsModal, setShowSavingsModal] = useState<boolean>(false);
+  const [calcLawyerRate, setCalcLawyerRate] = useState<number>(5000);
+  const [calcHoursPerDoc, setCalcHoursPerDoc] = useState<number>(5);
 
   // Load custom list indices
   useEffect(() => {
@@ -871,17 +878,32 @@ export default function DashboardConsole({
             </div>
 
             {/* Total Compiled */}
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/30 p-5 backdrop-blur-md">
-              <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider">Total Agreements</span>
+            <div 
+              onClick={() => {
+                const el = document.getElementById('smart-agreement-library');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="rounded-2xl border border-slate-900 bg-slate-900/30 p-5 backdrop-blur-md cursor-pointer hover:border-slate-800 hover:bg-slate-900/50 transition-all select-none group flex flex-col justify-between"
+            >
+              <div className="flex justify-between items-start w-full">
+                <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider group-hover:text-slate-350 transition-colors">Total Agreements</span>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <span className="text-xl font-bold text-white mt-1 block">{totalDrafts} generated</span>
-              <span className="text-[9px] text-slate-400 mt-2 block">{signedDrafts} fully executed</span>
+              <span className="text-[9px] text-slate-400 mt-2 block group-hover:text-slate-300 transition-colors">{signedDrafts} fully executed</span>
             </div>
 
             {/* Money Saved */}
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/30 p-5 backdrop-blur-md">
-              <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider">Money Saved (Est.)</span>
+            <div 
+              onClick={() => setShowSavingsModal(true)}
+              className="rounded-2xl border border-slate-900 bg-slate-900/30 p-5 backdrop-blur-md cursor-pointer hover:border-slate-800 hover:bg-slate-900/50 transition-all select-none group flex flex-col justify-between"
+            >
+              <div className="flex justify-between items-start w-full">
+                <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider group-hover:text-slate-350 transition-colors">Money Saved (Est.)</span>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <span className="text-xl font-bold text-emerald-450 mt-1 block">₹{moneySaved.toLocaleString()}</span>
-              <span className="text-[9px] text-slate-400 mt-2 block">vs traditional attorney fees</span>
+              <span className="text-[9px] text-slate-400 mt-2 block group-hover:text-slate-300 transition-colors">vs traditional attorney fees</span>
             </div>
 
             {/* Time Saved */}
@@ -1049,7 +1071,7 @@ export default function DashboardConsole({
           </div>
 
           {/* DRAFT LIBRARY */}
-          <div className="space-y-4 border-t border-slate-900 pt-6">
+          <div id="smart-agreement-library" className="space-y-4 border-t border-slate-900 pt-6">
             
             {/* Library Control Bar */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
@@ -2537,6 +2559,154 @@ export default function DashboardConsole({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SAVINGS ROI CALCULATOR MODAL */}
+      {showSavingsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center animate-fade-in p-4 sm:p-6">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-900 bg-slate-900/90 p-6 shadow-2xl space-y-6 relative text-left backdrop-blur-md">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-slate-850 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-emerald-450" />
+                Savings & ROI Calculator
+              </h3>
+              <button 
+                onClick={() => setShowSavingsModal(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Description */}
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Based on your <strong className="text-white">{totalDrafts} generated agreements</strong>, estimate your total money and time saved using LegalDocs instead of traditional legal channels.
+            </p>
+
+            {/* Interactive Inputs */}
+            <div className="space-y-5 bg-slate-950/40 p-4 rounded-xl border border-slate-900">
+              
+              {/* Slider 1: Lawyer Rate */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Average Lawyer Fee per Draft</label>
+                  <span className="text-xs font-bold text-emerald-400">₹{calcLawyerRate.toLocaleString()}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1000"
+                  max="25000"
+                  step="500"
+                  value={calcLawyerRate}
+                  onChange={(e) => setCalcLawyerRate(Number(e.target.value))}
+                  className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none"
+                />
+                <div className="flex justify-between text-[8px] text-slate-500 font-semibold tracking-wider">
+                  <span>₹1,000</span>
+                  <span>₹12,500</span>
+                  <span>₹25,000</span>
+                </div>
+              </div>
+
+              {/* Slider 2: Hours Saved */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Estimated Hours Saved per Draft</label>
+                  <span className="text-xs font-bold text-blue-400">{calcHoursPerDoc} hours</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value={calcHoursPerDoc}
+                  onChange={(e) => setCalcHoursPerDoc(Number(e.target.value))}
+                  className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none"
+                />
+                <div className="flex justify-between text-[8px] text-slate-500 font-semibold tracking-wider">
+                  <span>1 hour</span>
+                  <span>10 hours</span>
+                  <span>20 hours</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Results Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-slate-900 bg-emerald-500/5 p-4 text-left">
+                <span className="text-[9px] text-emerald-500/80 uppercase font-bold tracking-wider block">Estimated Money Saved</span>
+                <span className="text-2xl font-bold text-emerald-450 mt-1 block">
+                  ₹{(totalDrafts * calcLawyerRate).toLocaleString()}
+                </span>
+                <span className="text-[9px] text-slate-500 mt-1.5 block leading-normal">
+                  At ₹{calcLawyerRate.toLocaleString()}/draft rate
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-slate-900 bg-blue-500/5 p-4 text-left">
+                <span className="text-[9px] text-blue-400/80 uppercase font-bold tracking-wider block">Total Hours Reclaimed</span>
+                <span className="text-2xl font-bold text-blue-450 mt-1 block">
+                  {totalDrafts * calcHoursPerDoc} hours
+                </span>
+                <span className="text-[9px] text-slate-500 mt-1.5 block leading-normal">
+                  Reinvested in your core business
+                </span>
+              </div>
+            </div>
+
+            {/* ROI Cost Comparison chart */}
+            <div className="space-y-3 bg-slate-950/20 p-4 rounded-xl border border-slate-900 text-xs">
+              <div className="flex justify-between items-center text-[10px] text-slate-555 font-bold uppercase tracking-wider border-b border-slate-900 pb-2">
+                <span>Cost Comparison</span>
+                <span className="text-emerald-450 normal-case bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  {Math.round(((totalDrafts * calcLawyerRate - totalDrafts * 199) / (totalDrafts * calcLawyerRate)) * 100)}% Cost Reduction
+                </span>
+              </div>
+
+              {/* Bar 1: Traditional */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400">Traditional Attorney Cost:</span>
+                  <span className="text-rose-450 font-bold">₹{(totalDrafts * calcLawyerRate).toLocaleString()}</span>
+                </div>
+                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
+                  <div className="h-full bg-rose-500 rounded-full transition-all duration-300 w-full" />
+                </div>
+              </div>
+
+              {/* Bar 2: LegalDocs */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400">LegalDocs Cost (₹199/doc):</span>
+                  <span className="text-blue-450 font-bold">₹{(totalDrafts * 199).toLocaleString()}</span>
+                </div>
+                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
+                  <div 
+                    style={{ width: `${Math.max(2, Math.round(((totalDrafts * 199) / (totalDrafts * calcLawyerRate)) * 100))}%` }}
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Action button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSavingsModal(false)}
+                className="rounded-lg bg-blue-600 hover:bg-blue-550 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all shadow-md active:scale-95"
+              >
+                Close Calculator
+              </button>
+            </div>
+
           </div>
         </div>
       )}

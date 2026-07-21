@@ -52,6 +52,45 @@ export async function GET(request: Request) {
       console.error('Failed to log login activity:', e);
     }
 
+    const normalizedEmail = magicToken.email.trim().toLowerCase();
+
+    // Create user profile or balance record automatically on first login if not exists
+    try {
+      const existingBalance = await prisma.creditBalance.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (!existingBalance) {
+        await prisma.creditBalance.create({
+          data: {
+            email: normalizedEmail,
+            credits: 0,
+          },
+        });
+        console.log(`[MAGIC LINK AUTH] Created trial balance for new user: ${normalizedEmail}`);
+      }
+    } catch (e) {
+      console.error('Failed to initialize user balance:', e);
+    }
+
+    // Initialize user preferences if they don't exist
+    try {
+      const existingPrefs = await prisma.userPreferences.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (!existingPrefs) {
+        await prisma.userPreferences.create({
+          data: {
+            email: normalizedEmail,
+            onboarded: false,
+          },
+        });
+      }
+    } catch (e) {
+      console.error('Failed to initialize user preferences:', e);
+    }
+
     // 4. Issue session signature
     const sessionToken = signSession(magicToken.email);
 

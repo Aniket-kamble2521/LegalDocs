@@ -119,6 +119,7 @@ export async function POST(request: Request) {
         type: `${docType}_${variant}`,
         answers: answers,
         expires_at: expiresAt,
+        email: order.email || null,
         client_id: clientId || null,
       },
     });
